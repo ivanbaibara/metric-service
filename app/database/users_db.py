@@ -1,10 +1,10 @@
 import sqlite3
 import os
 
-from db_config import DATA_PATH, BD_NAME
+from db_config import DATA_PATH, DB_NAME
 
 
-DB_FULL_PATH = os.path.join(DATA_PATH, BD_NAME)
+DB_FULL_PATH = os.path.join(DATA_PATH, DB_NAME)
 
 '''
 Users (
@@ -18,7 +18,6 @@ Users (
 def get_connection():
     return sqlite3.connect(DB_FULL_PATH)
 
-# Создание таблицы Users (если нет)
 def users_create():
     try:
         with get_connection() as conn:
@@ -39,8 +38,7 @@ def users_create():
         print(f'Ошибка при создании таблицы users: {e}')
         raise
 
-# Добавление пользователя
-def user_add(add: dict):
+def users_add(add: dict):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -59,8 +57,7 @@ def user_add(add: dict):
         print(f'Ошибка добавления user: {e}')
         raise
 
-# Получение информации о пользователе через id
-def user_get_id(user_id: int) -> dict:
+def users_get_id(user_id: int) -> dict:
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -89,8 +86,7 @@ def user_get_id(user_id: int) -> dict:
         print(f'Ошибка при получении данных user: {e}')
         raise
 
-# Получение информации о пользователе через login
-def user_get_login(login: str) -> dict:
+def users_get_login(login: str) -> dict:
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -119,8 +115,7 @@ def user_get_login(login: str) -> dict:
         print(f'Ошибка при получении данных user: {e}')
         raise
 
-# Обновление информации о пользователе
-def user_update(user_id: int, update: dict):
+def users_update(user_id: int, update: dict):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -143,8 +138,7 @@ def user_update(user_id: int, update: dict):
         print(f'Ошибка обновления user: {e}')
         raise
 
-# Удаление пользователя
-def user_delete(user_id: int):
+def users_delete(user_id: int):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
