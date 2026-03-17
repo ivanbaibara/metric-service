@@ -1,0 +1,1 @@
+DB_FULL_PATH = '/home/ivan/PycharmProjects/metric-service/data/iot_project.db'

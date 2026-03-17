@@ -1,10 +1,7 @@
 import sqlite3
-import os
+import hashlib
 
-from db_config import DATA_PATH, DB_NAME
-
-
-DB_FULL_PATH = os.path.join(DATA_PATH, DB_NAME)
+from config import *
 
 '''
 Users (
@@ -14,6 +11,9 @@ Users (
     password_hash TEXT NOT NULL
 )
 '''
+
+def __get_hash(token: str):
+    return hashlib.sha256(token.encode()).hexdigest()
 
 def get_connection():
     return sqlite3.connect(DB_FULL_PATH)
@@ -38,17 +38,19 @@ def users_create():
         print(f'Ошибка при создании таблицы users: {e}')
         raise
 
-def users_add(add: dict):
+def users_add(login: str, password: str, role: int):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
+
+            password_hash = __get_hash(password)
 
             result = cursor.execute(
                 '''
                 INSERT INTO users (role, login, password_hash)
                 VALUES (?, ?, ?)
                 ''',
-                (add['role'], add['login'], add['password_hash'])
+                (role, login, password_hash)
             )
 
             return result.lastrowid
@@ -57,7 +59,7 @@ def users_add(add: dict):
         print(f'Ошибка добавления user: {e}')
         raise
 
-def users_get_id(user_id: int) -> dict:
+def users_get_id(user_id: int):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -80,13 +82,12 @@ def users_get_id(user_id: int) -> dict:
                     'login': row[2],
                     'password_hash': row[3]
                 }
-            return {}
 
     except Exception as e:
         print(f'Ошибка при получении данных user: {e}')
         raise
 
-def users_get_login(login: str) -> dict:
+def users_get_login(login: str):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -109,10 +110,35 @@ def users_get_login(login: str) -> dict:
                     'login': row[2],
                     'password_hash': row[3]
                 }
-            return {}
 
     except Exception as e:
         print(f'Ошибка при получении данных user: {e}')
+        raise
+
+def users_check_password(user_id: int, password: str):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            res = cursor.execute(
+                '''
+                SELECT 
+                    password_hash
+                FROM Users
+                WHERE id = ?
+                ''',
+                (user_id,)
+            )
+
+            row = res.fetchone()
+
+            if row:
+                return row[0] == __get_hash(password)
+
+            return False
+
+    except Exception as e:
+        print(f'Ошибка проверки users: {e}')
         raise
 
 def users_update(user_id: int, update: dict):
@@ -155,3 +181,22 @@ def users_delete(user_id: int):
     except Exception as e:
         print(f'Ошибка удаления user: {e}')
         raise
+
+def __get_all():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        res = cursor.execute(
+            '''
+            SELECT * FROM Users
+            '''
+        )
+
+        column_names = [dsc[0] for dsc in res.description]
+        rows = res.fetchall()
+
+        print(column_names)
+        for row in rows:
+            print(row)
+
+

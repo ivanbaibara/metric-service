@@ -1,10 +1,7 @@
 import sqlite3
 import os
 
-from db_config import DATA_PATH, DB_NAME
-
-DB_FULL_PATH = os.path.join(DATA_PATH, DB_NAME)
-
+from config import *
 '''
 Metrics (
     id INTEGER PRIMARY KEY NOT NULL,

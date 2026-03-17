@@ -1,10 +1,8 @@
 import sqlite3
 import os
 
-from db_config import DATA_PATH, DB_NAME
+from config import *
 
-
-DB_FULL_PATH = os.path.join(DATA_PATH, DB_NAME)
 
 '''
 Metric_Owners (
