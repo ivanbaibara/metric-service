@@ -12,6 +12,20 @@ Users (
 )
 '''
 
+class User:
+    def __init__(self):
+        self.id = None
+        self.role = None
+        self.login = None
+        self.password = None
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'role': self.role,
+            'login': self.login
+        }
+
 def __get_hash(token: str):
     return hashlib.sha256(token.encode()).hexdigest()
 
@@ -38,25 +52,55 @@ def users_create():
         print(f'Ошибка при создании таблицы users: {e}')
         raise
 
-def users_add(login: str, password: str, role: int):
+def users_add(user: User):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
 
-            password_hash = __get_hash(password)
+            password_hash = __get_hash(user.password)
 
             result = cursor.execute(
                 '''
                 INSERT INTO users (role, login, password_hash)
                 VALUES (?, ?, ?)
                 ''',
-                (role, login, password_hash)
+                (user.role, user.login, password_hash)
             )
 
             return result.lastrowid
 
     except Exception as e:
         print(f'Ошибка добавления user: {e}')
+        raise
+
+def users_get_all():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            result = cursor.execute(
+                '''
+                SELECT
+                    id, role, login
+                FROM Users
+                '''
+            )
+
+            rows = result.fetchall()
+
+            users = []
+            for row in rows:
+                user = User()
+                user.id = row[0]
+                user.role = row[1]
+                user.login = row[2]
+
+                users.append(user)
+
+            return users
+
+    except Exception as e:
+        print(f'Ошибка получения users: {e}')
         raise
 
 def users_get_id(user_id: int):
@@ -76,12 +120,13 @@ def users_get_id(user_id: int):
 
             row = result.fetchone()
             if row:
-                return {
-                    'id': row[0],
-                    'role': row[1],
-                    'login': row[2],
-                    'password_hash': row[3]
-                }
+                user = User()
+
+                user.id = row[0]
+                user.role = row[1]
+                user.login = row[2]
+
+                return user
 
     except Exception as e:
         print(f'Ошибка при получении данных user: {e}')
@@ -104,12 +149,13 @@ def users_get_login(login: str):
 
             row = result.fetchone()
             if row:
-                return {
-                    'id': row[0],
-                    'role': row[1],
-                    'login': row[2],
-                    'password_hash': row[3]
-                }
+                user = User()
+
+                user.id = row[0]
+                user.role = row[1]
+                user.login = row[2]
+
+                return user
 
     except Exception as e:
         print(f'Ошибка при получении данных user: {e}')
@@ -141,7 +187,7 @@ def users_check_password(user_id: int, password: str):
         print(f'Ошибка проверки users: {e}')
         raise
 
-def users_update(user_id: int, update: dict):
+def users_update(user: User):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -151,11 +197,10 @@ def users_update(user_id: int, update: dict):
                 UPDATE Users
                 SET 
                     role = COALESCE(?, role),
-                    login = COALESCE(?, login),
                     password_hash = COALESCE(?, password_hash)
                 WHERE id = ?
                 ''',
-                (update['role'], update['login'], update['password_hash'], user_id)
+                (user.role, __get_hash(user.password), user.id)
             )
 
             return result.rowcount
@@ -198,5 +243,3 @@ def __get_all():
         print(column_names)
         for row in rows:
             print(row)
-
-

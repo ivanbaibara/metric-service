@@ -18,7 +18,7 @@ def check_auth(level_required):
 
                 # Проверяем уровень доступа
                 user = users_get_id(user_id)
-                level_flag = int(user['role']) <= level_required
+                level_flag = int(user.role) <= level_required
 
             if access_flag and level_flag:
                 return func()

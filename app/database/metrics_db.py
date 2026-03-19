@@ -11,8 +11,25 @@ Metrics (
 )
 '''
 
+class Metric:
+    def __init__(self):
+        self.id = None
+        self.name = None
+        self.type = None
+        self.duration = None
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'type': self.type,
+            'duration': self.duration
+        }
+
 def get_connection():
-    return sqlite3.connect(DB_FULL_PATH)
+    conn = sqlite3.connect(DB_FULL_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 def metrics_create():
     try:
@@ -34,7 +51,9 @@ def metrics_create():
         print(f'Ошибка создания metrics: {e}')
         raise
 
-def metrics_add(add: dict):
+
+# Not used
+def metrics_add(metric: Metric):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -44,7 +63,7 @@ def metrics_add(add: dict):
                 INSERT INTO Metrics (name, type, duration)
                 VALUES (?, ?, ?)
                 ''',
-                (add['name'], add['type'], add['duration'])
+                (metric.name, metric.type, metric.duration)
             )
 
             return result.lastrowid
@@ -53,7 +72,7 @@ def metrics_add(add: dict):
         print(f'Ошибка добавления metric: {e}')
         raise
 
-def metrics_get(metric_id: int):
+def metrics_get(metric_id: int) -> Metric | None:
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -65,23 +84,24 @@ def metrics_get(metric_id: int):
                 FROM Metrics
                 WHERE id = ?
                 ''',
-                (metric_id, )
+                (metric_id,)
             )
 
             row = result.fetchone()
             if row:
-                return {
-                    'id': row[0],
-                    'name': row[1],
-                    'type': row[2],
-                    'duration': row[3]
-                }
+                metric = Metric()
+                metric.id = row[0]
+                metric.name = row[1]
+                metric.type = row[2]
+                metric.duration = row[3]
+
+                return metric
 
     except Exception as e:
         print(f'Ошибка получения metric: {e}')
         raise
 
-def metrics_update(metric_id: int, update: dict):
+def metrics_update(metric: Metric):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -94,7 +114,7 @@ def metrics_update(metric_id: int, update: dict):
                     duration = COALESCE(?, duration)
                 WHERE id = ?
                 ''',
-                (update['name'], update['duration'], metric_id)
+                (metric.name, metric.duration, metric.id)
             )
 
             return result.rowcount
@@ -103,7 +123,7 @@ def metrics_update(metric_id: int, update: dict):
         print(f'Ошибка обновления metric: {e}')
         raise
 
-def metrics_delete(metric_id: int):
+def metrics_delete(metric: Metric):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -112,7 +132,7 @@ def metrics_delete(metric_id: int):
                 '''
                 DELETE FROM Metrics WHERE id = ?
                 ''',
-                (metric_id,)
+                (metric.id,)
             )
 
             return result.rowcount
@@ -120,3 +140,21 @@ def metrics_delete(metric_id: int):
     except Exception as e:
         print(f'Ошибка удаления metric: {e}')
         raise
+
+def __get_all():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        res = cursor.execute(
+            '''
+            SELECT * FROM Metrics
+            '''
+        )
+
+        column_names = [dsc[0] for dsc in res.description]
+        rows = res.fetchall()
+
+        print(column_names)
+        for row in rows:
+            print(row)
+
