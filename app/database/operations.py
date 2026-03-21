@@ -1,7 +1,6 @@
 import sqlite3
 
 from app.database.metrics_db import Metric
-from app.database.users_db import User
 from config import DB_FULL_PATH
 
 

@@ -1,8 +1,5 @@
 import sqlite3
-import os
-
-from config import *
-
+from config import DB_FULL_PATH
 
 '''
 Data_Flt (
@@ -15,7 +12,7 @@ Data_Flt (
 
 def get_connection():
     conn = sqlite3.connect(DB_FULL_PATH)
-    #conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 def data_flt_create():
@@ -100,11 +97,11 @@ def data_flt_get_many(metric_id: int, after: str, until: str):
                     recorded_at,
                     value
                 FROM Data_Flt
-                WHERE metric_id = ? AND
-                recorded_at >= ? AND 
-                recorded_at <= ?
+                WHERE metric_id = ?
+                AND (recorded_at >= ? OR ? IS NULL) 
+                AND (recorded_at <= ? OR ? IS NULL)
                 ''',
-                (metric_id, after, until)
+                (metric_id, after, after, until, until)
             )
 
             rows = result.fetchall()

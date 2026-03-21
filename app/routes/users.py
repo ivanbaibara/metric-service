@@ -40,16 +40,22 @@ def user_add():
     if role not in [0, 1, 2]:
         return jsonify({'error': 'Invalid role value'}), 400
 
-    if not (8 <= len(login) <= 16):
+    if not (4 <= len(login) <= 16):
         return jsonify({'error': 'Invalid login length'}), 400
 
-    if not (8 <= len(password) <= 16):
+    if not (4 <= len(password) <= 16):
         return jsonify({'error': 'Invalid password length'}), 400
 
     user = User()
     user.role = role
     user.login = login
     user.password = password
+
+    # Проверка на существование пользователя
+    user_exist = users_get_login(user.login)
+
+    if user_exist:
+        return jsonify({'error': 'User with this login already exists'}), 400
 
     user_id = users_add(user)
     return jsonify({'added_id': user_id}), 200
