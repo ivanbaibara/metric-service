@@ -5,7 +5,9 @@ from config import DB_FULL_PATH
 
 
 def get_connection():
-    return sqlite3.connect(DB_FULL_PATH, isolation_level=None)
+    conn = sqlite3.connect(DB_FULL_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 def transaction_metric_add(user_id: int, metric: Metric):

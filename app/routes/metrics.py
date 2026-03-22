@@ -170,10 +170,16 @@ def metric_add_owner():
         return jsonify({'error': 'User not found'}), 400
 
     if user.role != 2:
-        return jsonify({'error': 'You cannot add user without spectator role'})
+        return jsonify({'error': 'You cannot add user without spectator role'}), 400
+
+    # Проверка на наличии прав
+    permission = metric_owners_get_pair(user.id, metric.id)
+
+    if permission:
+        return jsonify({'error': 'User already has permission'}), 400
 
     count = metric_owners_add(user.id, metric.id)
-    return jsonify({'added': count})
+    return jsonify({'added': count}), 200
 
 
 @metrics_bp.route('/api/metrics/permissions', methods=['DELETE'])
@@ -189,9 +195,6 @@ def metric_delete_owner():
     metric = metrics_get(metric_id)
     user = users_get_login(delete_user_login)
 
-    if user.id == user_id:
-        return jsonify({'error': 'You cannot delete yourself'}), 400
-
     user_metrics = metric_owners_get_all_metrics(user_id)
 
     if not metric:
@@ -205,6 +208,9 @@ def metric_delete_owner():
 
     if metric_owners_get_pair(user_id, metric_id) == 0:
         return jsonify({'error': 'Not permissions found for user'})
+
+    if user.id == user_id:
+        return jsonify({'error': 'You cannot delete yourself'}), 400
 
     count = metric_owners_delete_pair(user.id, metric_id)
     return jsonify({'deleted': count})

@@ -129,14 +129,15 @@ def metric_owners_get_pair(user_id: int, metric_id: int):
             result = cursor.execute(
                 '''
                 SELECT 
-                    *
+                    user_id,
+                    metric_id
                 FROM Metric_Owners
                 WHERE user_id = ? AND metric_id = ?
                 ''',
                 (user_id, metric_id)
             )
 
-            return result.rowcount
+            return result.fetchall()
 
     except Exception as e:
         print(f'Ошибка получения metric_owners: {e}')

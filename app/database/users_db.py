@@ -30,7 +30,9 @@ def __get_hash(token: str):
     return hashlib.sha256(token.encode()).hexdigest()
 
 def get_connection():
-    return sqlite3.connect(DB_FULL_PATH)
+    conn = sqlite3.connect(DB_FULL_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 def users_create():
     try:
